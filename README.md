@@ -63,17 +63,19 @@ We have used a virtual cluster for our development and test purposes. To make th
 1. Install both **VirtualBox** and **Vagrant** software inside a Linux system.
 2. Clone the repository of the project, to setup the virtual cluster.
 3. Clone Slurm (https://github.com/SchedMD/slurm.git) in the same folder.
-4. Uncomment the lines 75-76 in the Vagrant file.
-5. Run `vagrant up` twice (inspite of getting any errors or no error).
-6. Comment out the lines 75-76 again.
-7. Run `vagrant up`.
-8. Run `vagrant ssh controller`
-9. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && sudo slurmctld -D &`).
-10. Run `vagrant ssh server1`
-11. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && slurmd start`).
-12. Do the same for **server2** VM.
+4. Run `cp job_submit_all_partitions.c slurm/src/plugin/job_submit/all_partitions/.` in the folder of the project.
+5. Uncomment the lines 75-76 in the **Vagrantfile**.
+6. Run `vagrant up` twice (inspite of getting any errors or no error).
+7. Comment out the lines 75-76 again.
+8. Run `vagrant up` again.
+9. Run `vagrant ssh controller`
+10. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && sudo slurmctld -D &`).
+11. Run `vagrant ssh server1`
+12. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && slurmd start`).
+13. Do the same for **server2** VM.
+14. Test the servers are idle and ready to submit the jobs, by running `sinfo` on the **controller** VM.
 
-By this setup, you will have three servers, two partitions, two storage tiers (hps and lps) and a single control daemon server.
+By this setup, you will have three servers, two partitions, two shared storage tiers (**hps** and **lps**) and a single control daemon server.
 
 After this setup, the cluster is ready to use and you could submit your jobs using `sbatch` command. By passing the job storage requirements of jobs, as discussed in the previous section, you will let Slurm decide which compute and data resources should be assigned to your jobs. 
 
