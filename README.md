@@ -25,7 +25,7 @@ To use the plugin, when submitting a job, users need to define their own job sto
 
 If users have no know knowledge available in advance about the storage needs of the job, they can simply ignore all the parameters (arguments) and the algorithm will apply the default job submission mechanism of Slurm.
 
-The current version is a basic implementation that implements the scheduling logic published by our paper [[1]](#1). Based on the published scheduling approach, the plugin must calculate the argument `wait-time` dynamically from the system status, but still we need time to find the way to gather this information dynamically, therefore we replaced this with some random values in the current version of the plugin. 
+The current version of the plugin implements the scheduling logic published by our paper [[1]](#1). Based on the published scheduling approach, the plugin must calculate the argument `wait-time` dynamically from the system status, but still we need time to find the way to gather this information dynamically, therefore we replaced this with some random values in the current version of the plugin. 
 
 We need to notice that `lps-path`, `hps-path`, `lps-speed` and `hps-speed` can be implicitly defined in the source code of the plugin. Defining them as arguments gives users the possibility of choosing only the desired storage tiers when there are more than two tiers in the cluster. 
 
@@ -49,16 +49,31 @@ cp output.txt $SLURM_SUBMIT_DIR/.
 ```
 This simple job receives a text file, called `input.txt` (located in the same directory of `sample.sh`) as input and produces an output file, called `output.txt` (located in the same directory of `sample.sh`), by appending a new line of string to the end of the input file. In this job script, the environment variable `SLURM_SUBMIT_DIR` refers the directory from which `sbatch` was invoked and `HPC_LOCAL` refers to the working directory (mapped in lps or hps tier) in the compute node running the job.
 
-Because the `sbatch`’s arguments are specified respecting the job requirements, for instance to ask Slurm to use hps tier for I/O operations, we could submit this job as follows:
+We could submit the job by `sbatch`, as follows (assuming the /lps and /hps for our two shared storage tiers):
 ```
-sbatch sample.js --hps-path=/hps
+sbatch sample.js --hps-path=/hps --lps-path=/lps
 ```
 Looking at the code of the plugin, one can detect that the function `_set_job_working_dir` will set the working directory (referred by the environment variable `HPC_LOCAL`) for each job. In other words, based on the adequate storage tier selected by the plugin, this function maps the output path of each job to the hps or the lps tier.
 
 Setup the virtual testbed
 -------------------------
 
-We have used a virtual cluster for our development and test purposes. To make this environment easily usable for everybody, we automated the setup process by Vagrant Software. To complete all requirements for producing the virtual cluster, first you need to install both **VirtualBox** and **Vagrant** software inside a Linux system. Then you could use the `Vagrantfile`, available in the repository of the project, to setup the virtual cluster. By this setup, you will have three servers, two partitions, two storage tiers (hps and lps) and a single control daemon server.
+We have used a virtual cluster for our development and test purposes. To make this environment easily usable for everybody, we automated the setup process by Vagrant Software. To complete all requirements for producing the virtual cluster, and testing the plugin, you could follow these steps:
+
+1. Install both **VirtualBox** and **Vagrant** software inside a Linux system.
+2. Clone the repository of the project, to setup the virtual cluster.
+3. Clone Slurm (https://github.com/SchedMD/slurm.git) in the same folder.
+4. Uncomment the lines 75-76 in the Vagrant file.
+5. Run `vagrant up` twice (inspite of getting any errors or no error).
+6. Comment out the lines 75-76 again.
+7. Run `vagrant up`.
+8. Run `vagrant ssh controller`
+9. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && sudo slurmctld -D &`).
+10. Run `vagrant ssh server1`
+11. Compile the Sulrm source code in the VM and run the service (`cd /vagrant/slurm && ./configure && make & make install && slurmd start`).
+12. Do the same for **server2** VM.
+
+By this setup, you will have three servers, two partitions, two storage tiers (hps and lps) and a single control daemon server.
 
 After this setup, the cluster is ready to use and you could submit your jobs using `sbatch` command. By passing the job storage requirements of jobs, as discussed in the previous section, you will let Slurm decide which compute and data resources should be assigned to your jobs. 
 
